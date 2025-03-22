@@ -1,5 +1,6 @@
 ---
 name: Verify Release
+run-name: Verify Release ${{github.event.workflow_run.head_branch}}
 on:
   workflow_run:
     workflows: ["Release"]
