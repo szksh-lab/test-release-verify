@@ -39,12 +39,14 @@ jobs:
           verified=${resp%/*}
           email=${resp#*/}
           echo "verified=$verified" >> "$GITHUB_OUTPUT"
-          echo "email=$email" >> "$GITHUB_OUTPUT"
           if [ "$verified" != "true" ]; then
             echo "::error:: Tag is not verified"
           fi
-          if [ "$email" != "$EXPECTED_EMAIL" ]; then
+          if [ "$email" = "$EXPECTED_EMAIL" ]; then
+            echo "email=true" >> "$GITHUB_OUTPUT"
+          else
             echo "::error:: Tagger is unexpected"
+            echo "email=false" >> "$GITHUB_OUTPUT"
           fi
 
       # Get N commits from the default branch and verify the commit SHA
