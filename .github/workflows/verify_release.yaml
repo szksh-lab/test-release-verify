@@ -38,13 +38,13 @@ jobs:
             "/repos/${GITHUB_REPOSITORY}/git/tags/$sha")
           verified=${resp%/*}
           email=${resp#*/}
+          echo "verified=$verified" >> "$GITHUB_OUTPUT"
+          echo "email=$email" >> "$GITHUB_OUTPUT"
           if [ "$verified" != "true" ]; then
             echo "::error:: Tag is not verified"
-            echo "verified=false" >> "$GITHUB_OUTPUT"
           fi
           if [ "$email" != "$EXPECTED_EMAIL" ]; then
             echo "::error:: Tagger is unexpected"
-            echo "email=false" >> "$GITHUB_OUTPUT"
           fi
 
       # Get N commits from the default branch and verify the commit SHA
@@ -82,13 +82,15 @@ jobs:
           echo "SHAS:"
           echo "$shas"
           echo "---"      
-          if !(echo "$shas" | grep -q "$SHA"); then
+          if echo "$shas" | grep -q "$SHA"; then
+            echo "default_branch=true" >> "$GITHUB_OUTPUT"
+          else
             echo "::error:: The commit isn't included in the latest $LENGTH commits of the default branch"
             echo "default_branch=false" >> "$GITHUB_OUTPUT"
           fi
 
       - if: |
-          steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch == 'false'
+          steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch != 'true'
         env:
           GH_TOKEN: ${{github.token}}
           ISSUE_NUMBER: 1
@@ -112,7 +114,7 @@ jobs:
           rm "$tempfile"
 
       - if: |
-          steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch == 'false'
+          steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch != 'true'
         id: slack_body
         env:
           EMAIL: ${{steps.verify.outputs.email}}
@@ -139,7 +141,7 @@ jobs:
           rm "$tempfile"
 
       - if: |
-          steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch == 'false'
+          steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch != 'true'
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK_URL }}
@@ -147,7 +149,7 @@ jobs:
           payload: ${{ toJson(steps.slack_body.outputs) }}
 
       - if: |
-          steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch == 'false'
+          steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch != 'true'
         run: |
           echo "::error:: The validation failed"
           exit 1
