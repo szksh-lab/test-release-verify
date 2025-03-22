@@ -142,7 +142,7 @@ jobs:
           steps.verify.outputs.verified != 'true' || steps.verify.outputs.email != 'true' || steps.commit.outputs.default_branch == 'false'
         uses: slackapi/slack-github-action@v2.0.0
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: ${{ toJson(steps.slack_body.outputs) }}
 
