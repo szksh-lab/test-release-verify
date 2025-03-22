@@ -29,13 +29,13 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             --jq ".object.sha" \
-            "/repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG")
+            "/repos/${GITHUB_REPOSITORY}/git/ref/tags/$TAG")
 
           resp=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             -q '"\(.verification.verified)/\(.tagger.email)"' \
-            "/repos/$GITHUB_REPOSITORY/git/tags/$sha")
+            "/repos/${GITHUB_REPOSITORY}/git/tags/$sha")
           verified=${resp%/*}
           email=${resp#*/}
           if [ "$verified" != "true" ]; then
@@ -54,7 +54,7 @@ jobs:
           SHA: ${{github.event.workflow_run.head_sha}}
           LENGTH: 10
         run: |
-          repo=${GITHUB_REPOSITORY_NAME#*/}
+          repo=${GITHUB_REPOSITORY#*/}
           shas=$(gh api graphql \
             -F "owner=$GITHUB_REPOSITORY_OWNER" \
             -F "repo=$repo" \
