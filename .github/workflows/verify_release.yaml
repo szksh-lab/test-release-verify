@@ -20,16 +20,22 @@ jobs:
       - id: verify
         env:
           GH_TOKEN: ${{github.token}}
-          SHA: ${{github.event.workflow_run.after}}
           EXPECTED_EMAIL: ${{secrets.RELEASE_EMAIL}}
+          TAG: ${{github.event.workflow_run.head_branch}}
         # .verification.verified
         # .tagger.email
         run: |
+          sha=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            --jq ".object.sha" \
+            "/repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG")
+
           resp=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             -q '"\(.verification.verified)/\(.tagger.email)"' \
-            "/repos/$GITHUB_REPOSITORY/git/tags/$SHA")
+            "/repos/$GITHUB_REPOSITORY/git/tags/$sha")
           verified=${resp%/*}
           email=${resp#*/}
           if [ "$verified" != "true" ]; then
