@@ -44,6 +44,10 @@ inputs:
     required: false
     default: "true"
 outputs:
+  annotated_tag:
+    value: ${{steps.verify.outputs.annotated}}
+    description: |
+      true or false. Whether the tag is annotated.
   tagger_email:
     value: ${{steps.verify.outputs.email}}
     description: |
