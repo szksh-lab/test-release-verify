@@ -88,7 +88,7 @@ runs:
         ref_resp=$(gh api \
           -H "Accept: application/vnd.github+json" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          --jq "\(.object.type)/\(.object.sha)" \
+          --jq '"\(.object.type)/\(.object.sha)"' \
           "/repos/${GITHUB_REPOSITORY}/git/ref/tags/$TAG")
         tag_type=${ref_resp%/*}
         sha=${ref_resp#*/}
