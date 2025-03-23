@@ -26,5 +26,5 @@ jobs:
       - run: echo ":"
         env:
           EMAIL: ${{steps.verify.outputs.tagger_email}}
-          VERIFIED_TAG: ${{steps.verify.outputs.verifed_tag}}
+          VERIFIED_TAG: ${{steps.verify.outputs.verified_tag}}
           COMMIT: ${{steps.verify.outputs.commit_in_default_branch}}
