@@ -223,15 +223,17 @@ runs:
       shell: bash
       id: slack_body
       env:
+        TAG: ${{github.event.workflow_run.head_branch}}
         EMAIL: ${{steps.verify.outputs.email}}
         VERIFIED: ${{steps.verify.outputs.verified}}
         DEFAULT_BRANCH: ${{steps.commit.outputs.default_branch}}
         LENGTH: ${{inputs.allowed_commit_length}}
+      # https://api.slack.com/reference/surfaces/formatting
       run: |
         tempfile=$(mktemp)
-        echo "repository: [$GITHUB_REPOSITORY]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY)" >> "$tempfile"
-        echo "tag: [$TAG]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG)" >> "$tempfile"
-        echo "[Workflow Run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> "$tempfile"
+        echo "repository: <$GITHUB_REPOSITORY|$GITHUB_SERVER_URL/$GITHUB_REPOSITORY>" >> "$tempfile"
+        echo "tag: <$TAG|$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG>" >> "$tempfile"
+        echo "<Workflow Run|$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID>" >> "$tempfile"
         if [ "$ANNOTATED" != true ]; then
           echo ":x: A tag isn't annotated" >> "$tempfile"
         else
