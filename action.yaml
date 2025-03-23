@@ -231,9 +231,9 @@ runs:
       # https://api.slack.com/reference/surfaces/formatting
       run: |
         tempfile=$(mktemp)
-        echo "repository: <$GITHUB_REPOSITORY|$GITHUB_SERVER_URL/$GITHUB_REPOSITORY>" >> "$tempfile"
-        echo "tag: <$TAG|$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG>" >> "$tempfile"
-        echo "<Workflow Run|$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID>" >> "$tempfile"
+        echo "repository: <$GITHUB_SERVER_URL/$GITHUB_REPOSITORY|$GITHUB_REPOSITORY>" >> "$tempfile"
+        echo "tag: <$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG|$TAG>" >> "$tempfile"
+        echo "<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Workflow Run>" >> "$tempfile"
         if [ "$ANNOTATED" != true ]; then
           echo ":x: A tag isn't annotated" >> "$tempfile"
         else
