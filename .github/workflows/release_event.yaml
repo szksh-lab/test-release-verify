@@ -1,0 +1,15 @@
+---
+name: Release Event
+run-name: Release Event ${{github.ref}}
+on:
+  release:
+    types:
+      - released # created release, change prerelease to release
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "$PAYLOAD"
+        env:
+          PAYLOAD: ${{ toJson(github.event) }}
+
