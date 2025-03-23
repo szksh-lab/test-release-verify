@@ -85,11 +85,19 @@ runs:
           echo "verified=true" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        sha=$(gh api \
+        ref_resp=$(gh api \
           -H "Accept: application/vnd.github+json" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          --jq ".object.sha" \
+          --jq "\(.object.type)/\(.object.sha)" \
           "/repos/${GITHUB_REPOSITORY}/git/ref/tags/$TAG")
+        tag_type=${ref_resp%/*}
+        sha=${ref_resp#*/}
+        if [ "$tag_type" != tag ]; then
+          echo "::error:: The tag must be an annotated tag"
+          echo "annotated=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        echo "annotated=true" >> "$GITHUB_OUTPUT"
 
         resp=$(gh api \
           -H "Accept: application/vnd.github+json" \
@@ -167,11 +175,12 @@ runs:
     - id: result
       shell: bash
       env:
+        ANNOTATED: ${{steps.verify.outputs.annotated}}
         EMAIL: ${{steps.verify.outputs.email}}
         VERIFIED: ${{steps.verify.outputs.verified}}
         DEFAULT_BRANCH: ${{steps.commit.outputs.default_branch}}
       run: |
-        if [ "$VERIFIED" = true ] && [ "$EMAIL" = true ] && [ "$DEFAULT_BRANCH" = true ]; then
+        if [ "$ANNOTATED" = true ] && [ "$VERIFIED" = true ] && [ "$EMAIL" = true ] && [ "$DEFAULT_BRANCH" = true ]; then
           echo "value=true" >> "$GITHUB_OUTPUT"
         else
           echo "value=false" >> "$GITHUB_OUTPUT"
@@ -181,20 +190,28 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{github.token}}
+        TAG: ${{github.event.workflow_run.head_branch}}
         ISSUE_REPO: ${{inputs.issue_repository}}
         ISSUE_NUMBER: ${{inputs.issue_number}}
+        ANNOTATED: ${{steps.verify.outputs.annotated}}
         EMAIL: ${{steps.verify.outputs.email}}
         VERIFIED: ${{steps.verify.outputs.verified}}
         DEFAULT_BRANCH: ${{steps.commit.outputs.default_branch}}
         LENGTH: ${{inputs.allowed_commit_length}}
       run: |
         tempfile=$(mktemp)
-        echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> "$tempfile"
-        if [ "$EMAIL" != true ]; then
-          echo ":x: Tagger email is not expected" >> "$tempfile"
-        fi
-        if [ "$VERIFIED" != true ]; then
-          echo ":x: Tag is not verified" >> "$tempfile"
+        echo "repository: [$GITHUB_REPOSITORY]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY)" >> "$tempfile"
+        echo "tag: [$TAG]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG)" >> "$tempfile"
+        echo "[Workflow Run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> "$tempfile"
+        if [ "$ANNOTATED" != true ]; then
+          echo ":x: A tag isn't annotated" >> "$tempfile"
+        else
+          if [ "$EMAIL" != true ]; then
+            echo ":x: Tagger email is not expected" >> "$tempfile"
+          fi
+          if [ "$VERIFIED" != true ]; then
+            echo ":x: Tag is not verified" >> "$tempfile"
+          fi
         fi
         if [ "$DEFAULT_BRANCH" == false ]; then
           echo ":x: The commit isn't included in the latest $LENGTH commits of the default branch" >> "$tempfile"
@@ -212,12 +229,18 @@ runs:
         LENGTH: ${{inputs.allowed_commit_length}}
       run: |
         tempfile=$(mktemp)
-        echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> "$tempfile"
-        if [ "$EMAIL" != true ]; then
-          echo ":x: Tagger email is not expected" >> "$tempfile"
-        fi
-        if [ "$VERIFIED" != true ]; then
-          echo ":x: Tag is not verified" >> "$tempfile"
+        echo "repository: [$GITHUB_REPOSITORY]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY)" >> "$tempfile"
+        echo "tag: [$TAG]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG)" >> "$tempfile"
+        echo "[Workflow Run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> "$tempfile"
+        if [ "$ANNOTATED" != true ]; then
+          echo ":x: A tag isn't annotated" >> "$tempfile"
+        else
+          if [ "$EMAIL" != true ]; then
+            echo ":x: Tagger email is not expected" >> "$tempfile"
+          fi
+          if [ "$VERIFIED" != true ]; then
+            echo ":x: Tag is not verified" >> "$tempfile"
+          fi
         fi
         if [ "$DEFAULT_BRANCH" == false ]; then
           echo ":x: The commit isn't included in the latest $LENGTH commits of the default branch" >> "$tempfile"
