@@ -17,9 +17,11 @@ jobs:
       - run: echo "$PAYLOAD"
         env:
           PAYLOAD: ${{ toJson(github.event) }}
-      - uses: szksh-lab/test-release-verify@main
+      - uses: suzuki-shunsuke/verify-tag-action@main
         id: verify
         with:
+          tag: ${{github.event.workflow_run.head_branch}}
+          commit_sha: ${{github.event.workflow_run.head_sha}}
           slack_incoming_webhook_url: ${{secrets.SLACK_INCOMING_WEBHOOK_URL}}
           tagger_emails: ${{secrets.RELEASE_EMAIL}}
           issue_number: "1"
